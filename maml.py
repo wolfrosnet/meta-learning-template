@@ -51,7 +51,7 @@ def main(config):
 
     with open("./etc/phase.txt", "r") as f:
         lines = f.readlines()
-    phase_text = ''.join(lines[0:9])
+    phase_text = ''.join(lines[0:6])
 
     logger.info(f'TRAINING PHASE HAS STARTED')
     for iteration in range(config.num_iterations):

@@ -33,18 +33,18 @@ def main(config):
     logger.info(f'TASKSETS LOADED.')
 
     model = Conv4(config.x_dim, config.hid_dim, config.z_dim, config.ways)
-    model.to(config.device)
-    maml = l2l.algorithms.MAML(model, lr=config.fast_lr, first_order=False)
-    loss = nn.CrossEntropyLoss(reduction='mean')
-
     state_dict = torch.load(config.test_ckpt_path)
     model.load_state_dict(state_dict)
     model.to(config.device)
+
+    maml = l2l.algorithms.MAML(model, lr=config.fast_lr, first_order=False)
+    loss = nn.CrossEntropyLoss(reduction='mean')
+
     logger.info(f'Checkpoint Loaded: {config.test_ckpt_path}')
 
     with open("./etc/phase.txt", "r") as f:
         lines = f.readlines()
-    phase_text = ''.join(lines[11:19])
+    phase_text = ''.join(lines[7:13])
     print(phase_text)
 
     meta_test_error = 0.0
