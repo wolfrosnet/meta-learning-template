@@ -27,3 +27,4 @@ class Config:
     z_dim=32
     use_wandb=True
     mixup_method='cutmix'
+    test_ckpt_path=''

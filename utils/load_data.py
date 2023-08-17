@@ -1,13 +1,13 @@
 from collections import namedtuple
 
 from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
 import learn2learn as l2l
 from learn2learn.data.transforms import (NWays,
                                          KShots,
                                          LoadData,
                                          RemapLabels,
                                          ConsecutiveLabels)
-
 
 
 def get_tasksets(config):
@@ -63,5 +63,5 @@ def get_tasksets(config):
 
     BenchmarkTasksets = namedtuple('BenchmarkTasksets', ('train', 'validation', 'test'))
     tasksets = BenchmarkTasksets(train_tasks, valid_tasks, test_tasks)
-    
+
     return tasksets

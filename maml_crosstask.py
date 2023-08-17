@@ -1,16 +1,10 @@
 import os
 import logging
 
-import numpy as np
 import wandb
 import torch
 from torch import nn, optim
 import learn2learn as l2l
-from learn2learn.data.transforms import (NWays,
-                                         KShots,
-                                         LoadData,
-                                         RemapLabels,
-                                         ConsecutiveLabels)
 
 from backbones.conv4 import Conv4
 from utils.seed import seed_everything
@@ -28,7 +22,7 @@ def main(config):
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=config.gpu_id
     logger.info(f'DEVICE: {config.device}, GPU ID: {config.gpu_id}')
 
@@ -36,7 +30,7 @@ def main(config):
 
     seed_everything(config.seed)
     logger.info(f'SEED: {config.seed}')
-    
+
     if config.use_wandb:
         wandb.init(
             entity=config.wandb_entity,
@@ -54,7 +48,11 @@ def main(config):
     maml = l2l.algorithms.MAML(model, lr=config.fast_lr, first_order=False)
     opt = optim.Adam(maml.parameters(), config.meta_lr)
     loss = nn.CrossEntropyLoss(reduction='mean')
-    best_test_accuracy = 0.0
+    best_valid_accuracy = 0.0
+
+    with open("./etc/phase.txt", "r") as f:
+        lines = f.readlines()
+    phase_text = ''.join(lines[0:9])
 
     logger.info(f'TRAINING PHASE HAS STARTED')
     logger.info(f'MIXUP METHOD: {config.mixup_method}')
@@ -90,57 +88,37 @@ def main(config):
                 fast_adapt_maml(batch,
                                 learner,
                                 loss,
-                                config.adaptation_steps*2, # and evaluated using 10 gradient steps at test time. 
+                                config.adaptation_steps*2,
                                 config.shots,
                                 config.ways,
                                 config.device)
             meta_valid_error += evaluation_error.item()
             meta_valid_accuracy += evaluation_accuracy.item()
 
-            # Compute meta-test loss
-            learner = maml.clone()
-            batch = tasksets.test.sample()
-            evaluation_error, evaluation_accuracy = \
-                fast_adapt_maml(batch,
-                                learner,
-                                loss,
-                                config.adaptation_steps*2, # and evaluated using 10 gradient steps at test time. 
-                                config.shots,
-                                config.ways,
-                                config.device)
-            meta_test_error += evaluation_error.item()
-            meta_test_accuracy += evaluation_accuracy.item()            
-
         # Print some metrics
         meta_train_error /= config.meta_batch_size
         meta_train_accuracy /= config.meta_batch_size
         meta_valid_error /= config.meta_batch_size
         meta_valid_accuracy /= config.meta_batch_size
-        meta_test_error /= config.meta_batch_size
-        meta_test_accuracy /= config.meta_batch_size
 
         print("\x1B[H\x1B[J")
-        print('Iteration', iteration)
-        print('Meta Train Error', meta_train_error)
-        print('Meta Train Accuracy', meta_train_accuracy)
-        print('Meta Valid Error', meta_valid_error)
-        print('Meta Valid Accuracy', meta_valid_accuracy)
-        print('Meta Test Error', meta_test_error)
-        print('Meta Test Accuracy', meta_test_accuracy)
+        print(phase_text)
+        print(f'Iteration {iteration}/{config.num_iterations}')
+        print(f'Meta Train Error {meta_train_error}')
+        print(f'Meta Train Accuracy {meta_train_accuracy}')
+        print(f'Meta Valid Error {meta_valid_error}')
+        print(f'Meta Valid Accuracy {meta_valid_accuracy}')
 
         if config.use_wandb:
             wandb.log({
-                "Meta Train Error": meta_train_error, 
+                "Meta Train Error": meta_train_error,
                 "Meta Train Accuracy": meta_train_accuracy,
                 "Meta Valid Error": meta_valid_error,
                 "Meta Valid Accuracy": meta_valid_accuracy,
-                "Meta Test Error": meta_test_error,
-                "Meta Test Accuracy": meta_test_accuracy,
                 })
-        
-        ckpt_metric = meta_test_accuracy
-        if ckpt_metric > best_test_accuracy:
-            best_test_accuracy = ckpt_metric
+
+        if meta_valid_accuracy > best_valid_accuracy:
+            best_valid_accuracy = meta_valid_accuracy
             torch.save(maml.module.state_dict(), f'{config.ckpt_dir}/best.pt')
             print('Checkpoint Saved.')
 
@@ -148,12 +126,12 @@ def main(config):
         for p in maml.parameters():
             p.grad.data.mul_(1.0 / config.meta_batch_size)
         opt.step()
-    
-    print('Best Test Accuracy', best_test_accuracy)
+
+    print('Best Validation Accuracy', best_valid_accuracy)
 
     if config.use_wandb:
         wandb.log({
-            "Best Test Accuracy": best_test_accuracy,
+            "Best Validation Accuracy": best_valid_accuracy,
         })
 
 

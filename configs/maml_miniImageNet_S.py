@@ -26,3 +26,4 @@ class Config:
     hid_dim=32 # For MiniImagenet, we used 32 filters per layer to reduce overfitting, as done by (Ravi & Larochelle, 2017). 
     z_dim=32
     use_wandb=True
+    test_ckpt_path=''

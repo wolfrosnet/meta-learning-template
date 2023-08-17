@@ -37,3 +37,22 @@ class Conv4(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+class Conv4Encoder(nn.Module):
+    def __init__(self, x_dim=3, hid_dim=64, z_dim=64):
+        super(Conv4Encoder, self).__init__()
+        self.net = nn.Sequential(self.conv_block3(x_dim, hid_dim), self.conv_block3(hid_dim, hid_dim),
+                                 self.conv_block3(hid_dim, hid_dim), self.conv_block3(hid_dim, z_dim), 
+                                 Flatten())
+        self.hid_dim = hid_dim
+
+    def conv_block3(self, in_channels, out_channels):
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, 3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+
+    def forward(self, x):
+        return self.net(x)

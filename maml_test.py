@@ -20,8 +20,6 @@ from configs.maml_miniImageNet_S import Config
 
 
 def main(config):
-    ckpt_path = './checkpoint/somewhere/best.pt'
-
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -29,7 +27,7 @@ def main(config):
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
 
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   
+    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=config.gpu_id
     logger.info(f'DEVICE: {config.device}, GPU ID: {config.gpu_id}')
 
@@ -45,11 +43,15 @@ def main(config):
     maml = l2l.algorithms.MAML(model, lr=config.fast_lr, first_order=False)
     loss = nn.CrossEntropyLoss(reduction='mean')
 
-    state_dict = torch.load(ckpt_path)
+    state_dict = torch.load(config.test_ckpt_path)
     model.load_state_dict(state_dict)
     model.to(config.device)
-    logger.info(f'Checkpoint Loaded: {ckpt_path}')
+    logger.info(f'Checkpoint Loaded: {config.test_ckpt_path}')
 
+    with open("./etc/phase.txt", "r") as f:
+        lines = f.readlines()
+    phase_text = ''.join(lines[11:19])
+    print(phase_text)
 
     meta_test_error = 0.0
     meta_test_accuracy = 0.0
