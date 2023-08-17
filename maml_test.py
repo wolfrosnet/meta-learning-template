@@ -1,16 +1,10 @@
 import os
 import logging
 
-import numpy as np
-import wandb
+from tqdm.auto import tqdm
 import torch
-from torch import nn, optim
+from torch import nn
 import learn2learn as l2l
-from learn2learn.data.transforms import (NWays,
-                                         KShots,
-                                         LoadData,
-                                         RemapLabels,
-                                         ConsecutiveLabels)
 
 from backbones.conv4 import Conv4
 from utils.seed import seed_everything
@@ -55,22 +49,22 @@ def main(config):
 
     meta_test_error = 0.0
     meta_test_accuracy = 0.0
-    for task in range(config.meta_batch_size):
+    for task in tqdm(range(config.num_test_points)):
         # Compute meta-testing loss
         learner = maml.clone()
         batch = tasksets.test.sample()
         evaluation_error, evaluation_accuracy = fast_adapt_maml(batch,
-                                                            learner,
-                                                            loss,
-                                                            config.adaptation_steps*2,
-                                                            config.shots,
-                                                            config.ways,
-                                                            config.device)
+                                                                learner,
+                                                                loss,
+                                                                config.adaptation_steps*2,
+                                                                config.shots,
+                                                                config.ways,
+                                                                config.device)
         meta_test_error += evaluation_error.item()
         meta_test_accuracy += evaluation_accuracy.item()
 
-    meta_test_error /= config.meta_batch_size
-    meta_test_accuracy /= config.meta_batch_size
+    meta_test_error /= config.num_test_points
+    meta_test_accuracy /= config.num_test_points
 
     print('Meta Test Error', meta_test_error)
     print('Meta Test Accuracy', meta_test_accuracy)

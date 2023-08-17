@@ -1,7 +1,6 @@
 from collections import namedtuple
 
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
 import learn2learn as l2l
 from learn2learn.data.transforms import (NWays,
                                          KShots,
