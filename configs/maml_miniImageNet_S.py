@@ -7,7 +7,7 @@ class Config:
     algorithm='maml'
     dataset_name='miniImageNet-S'
     ways=5
-    shots=5
+    shots=5 # or 1
     meta_lr=0.001
     fast_lr=0.01 # For MiniImagenet, both models were trained using 5 gradient steps of size α = 0.01,
     meta_batch_size=4 # We used a meta batch-size of 4 and 2 tasks for 1-shot and 5-shot training respectively.
@@ -17,7 +17,7 @@ class Config:
     time_now = dt.datetime.now()
     run_id = time_now.strftime("%m%d%H%M%S")
     device = torch.device('cuda')
-    gpu_id='5'
+    gpu_id='6'
     name = f'{algorithm}_{dataset_name}_{run_id}'
     ckpt_dir = f'./checkpoint/{name}'
     wandb_entity = 'auroraveil' # WandB nickname
@@ -26,5 +26,5 @@ class Config:
     hid_dim=32 # For MiniImagenet, we used 32 filters per layer to reduce overfitting, as done by (Ravi & Larochelle, 2017).
     z_dim=32
     use_wandb=True
-    test_ckpt_path='./checkpoint/4559/best.pt'
+    test_ckpt_path='./checkpoint/maml_miniImageNet-S/best.pt'
     num_test_points=600

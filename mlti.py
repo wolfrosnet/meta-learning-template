@@ -1,5 +1,7 @@
 import os
 import logging
+import random
+from copy import deepcopy
 
 import wandb
 import torch
@@ -9,8 +11,9 @@ import learn2learn as l2l
 from backbones.conv4 import Conv4
 from utils.seed import seed_everything
 from utils.load_data import get_tasksets
-from utils.adapt import fast_adapt_maml
-from configs.maml_miniImageNet_S import Config
+from utils.adapt import fast_adapt_mlti, fast_adapt_maml
+from utils.mix import crosstask_mixup, innertask_mixup
+from configs.mlti_miniImageNet_S import Config
 
 
 def main(config):
@@ -48,12 +51,15 @@ def main(config):
     opt = optim.Adam(maml.parameters(), config.meta_lr)
     loss = nn.CrossEntropyLoss(reduction='mean')
     best_valid_accuracy = 0.0
+    mix_flag = None
 
     with open("./etc/phase.txt", "r") as f:
         lines = f.readlines()
     phase_text = ''.join(lines[0:6])
 
     logger.info(f'TRAINING PHASE HAS STARTED')
+    logger.info(f'MIXUP METHOD: {config.mixup_method}')
+
     for iteration in range(config.num_iterations):
         opt.zero_grad()
         meta_train_error, meta_train_accuracy = 0.0, 0.0
@@ -61,15 +67,29 @@ def main(config):
         for task in range(config.meta_batch_size):
             # Compute meta-training loss
             learner = maml.clone()
-            batch = tasksets.train.sample()
-            evaluation_error, evaluation_accuracy = \
-                fast_adapt_maml(batch,
-                                learner,
-                                loss,
-                                config.adaptation_steps,
-                                config.shots,
-                                config.ways,
-                                config.device)
+
+            coin_toss = random.randint(0, 1)
+            if coin_toss == 1:
+                batch1 = tasksets.train.sample()
+                batch2 = tasksets.train.sample()
+                batch, lam = crosstask_mixup(batch1, batch2, config.device, config.mixup_method, return_all_labels=True)
+                mix_flag = 'cross'
+            else:
+                batch1 = tasksets.train.sample()
+                batch2 = deepcopy(batch1)
+                batch, lam = innertask_mixup(batch1, batch2, config.device, config.mixup_method)
+                mix_flag = 'inner'
+
+
+            evaluation_error, evaluation_accuracy = fast_adapt_mlti(batch,
+                                                                    lam,
+                                                                    mix_flag,
+                                                                    learner,
+                                                                    loss,
+                                                                    config.adaptation_steps,
+                                                                    config.shots,
+                                                                    config.ways,
+                                                                    config.device)
             evaluation_error.backward()
             meta_train_error += evaluation_error.item()
             meta_train_accuracy += evaluation_accuracy.item()
@@ -77,14 +97,13 @@ def main(config):
             # Compute meta-validation loss
             learner = maml.clone()
             batch = tasksets.validation.sample()
-            evaluation_error, evaluation_accuracy = \
-                fast_adapt_maml(batch,
-                                learner,
-                                loss,
-                                config.adaptation_steps*2,
-                                config.shots,
-                                config.ways,
-                                config.device)
+            evaluation_error, evaluation_accuracy = fast_adapt_maml(batch,
+                                                                    learner,
+                                                                    loss,
+                                                                    config.adaptation_steps*2,
+                                                                    config.shots,
+                                                                    config.ways,
+                                                                    config.device)
             meta_valid_error += evaluation_error.item()
             meta_valid_accuracy += evaluation_accuracy.item()
 

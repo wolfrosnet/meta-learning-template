@@ -28,7 +28,7 @@ def get_tasksets(config):
         metadataset_train,
         task_transforms=[
             NWays(metadataset_train, config.ways),
-            KShots(metadataset_train, 2*config.shots),
+            KShots(metadataset_train, 4*config.shots),
             LoadData(metadataset_train),
             RemapLabels(metadataset_train),
             ConsecutiveLabels(metadataset_train),
@@ -39,8 +39,7 @@ def get_tasksets(config):
         metadataset_valid,
         task_transforms=[
             NWays(metadataset_valid, config.ways),
-            KShots(metadataset_valid, 2*config.shots),
-            # KShots(metadataset_valid, 15*2), # 15 examples per class were used for evaluating the post-update meta-gradient.
+            KShots(metadataset_valid, 4*config.shots),
             LoadData(metadataset_valid),
             RemapLabels(metadataset_valid),
             ConsecutiveLabels(metadataset_valid),
@@ -51,8 +50,7 @@ def get_tasksets(config):
         metadataset_test,
         task_transforms=[
             NWays(metadataset_test, config.ways),
-            l2l.data.transforms.KShots(metadataset_test, 2*config.shots),
-            # KShots(metadataset_test, 15*2), # 15 examples per class were used for evaluating the post-update meta-gradient.
+            KShots(metadataset_test, 4*config.shots),
             LoadData(metadataset_test),
             RemapLabels(metadataset_test),
             ConsecutiveLabels(metadataset_test),

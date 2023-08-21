@@ -61,7 +61,6 @@ def main(config):
         opt.zero_grad()
         meta_train_error, meta_train_accuracy = 0.0, 0.0
         meta_valid_error, meta_valid_accuracy = 0.0, 0.0
-        meta_test_error, meta_test_accuracy = 0.0, 0.0
         for task in range(config.meta_batch_size):
             # Compute meta-training loss
             learner = maml.clone()
