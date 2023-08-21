@@ -38,7 +38,7 @@ def mixup_data(data1, data2, lam):
     return mixed_data
 
 
-def crosstask_mixup(batch1, batch2, device, mode='cutmix', return_all_labels=False):
+def crosstask_mixup(batch1, batch2, device, mode='cutmix', inner=False, return_lambda=False):
     lam = Beta(torch.FloatTensor([2]), torch.FloatTensor([2])).sample().to("cuda")
 
     data1, label1 = batch1
@@ -51,7 +51,12 @@ def crosstask_mixup(batch1, batch2, device, mode='cutmix', return_all_labels=Fal
     data2, label2 = batch2
     data2 = data2.to(device)
     label2 = label2.to(device)
-    sort = torch.sort(label2)
+
+    if inner:
+        sort = torch.sort(label2, descending=True)
+    else:
+        sort = torch.sort(label2)
+
     data2 = data2.squeeze(0)[sort.indices].squeeze(0)
     label2 = label2.squeeze(0)[sort.indices].squeeze(0)
 
@@ -62,33 +67,7 @@ def crosstask_mixup(batch1, batch2, device, mode='cutmix', return_all_labels=Fal
     else:
         raise NotImplementedError
 
-    if return_all_labels:
-        return [mixed_data, label1, label2], lam
+    if return_lambda:
+        return [mixed_data, label1], lam
     else:
         return [mixed_data, label1]
-
-def innertask_mixup(batch1, batch2, device, mode='cutmix'):
-    lam = Beta(torch.FloatTensor([2]), torch.FloatTensor([2])).sample().to("cuda")
-
-    data1, label1 = batch1
-    data1 = data1.to(device)
-    label1 = label1.to(device)
-    sort = torch.sort(label1)
-    data1 = data1.squeeze(0)[sort.indices].squeeze(0)
-    label1 = label1.squeeze(0)[sort.indices].squeeze(0)
-
-    data2, label2 = batch2
-    data2 = data2.to(device)
-    label2 = label2.to(device)
-    sort = torch.sort(label2, descending=True)
-    data2 = data2.squeeze(0)[sort.indices].squeeze(0)
-    label2 = label2.squeeze(0)[sort.indices].squeeze(0)
-
-    if mode == 'cutmix':
-        mixed_data = cutmix_data(data1, data2, lam)
-    elif mode == 'mixup':
-        mixed_data = mixup_data(data1, data2, lam)
-    else:
-        raise NotImplementedError
-
-    return [mixed_data, label1, label2], lam

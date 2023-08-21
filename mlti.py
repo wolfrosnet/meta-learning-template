@@ -72,18 +72,14 @@ def main(config):
             if coin_toss == 1:
                 batch1 = tasksets.train.sample()
                 batch2 = tasksets.train.sample()
-                batch, lam = crosstask_mixup(batch1, batch2, config.device, config.mixup_method, return_all_labels=True)
-                mix_flag = 'cross'
+                batch = crosstask_mixup(batch1, batch2, config.device, config.mixup_method)
             else:
                 batch1 = tasksets.train.sample()
                 batch2 = deepcopy(batch1)
-                batch, lam = innertask_mixup(batch1, batch2, config.device, config.mixup_method)
-                mix_flag = 'inner'
+                batch = crosstask_mixup(batch1, batch2, config.device, config.mixup_method, inner=True)
 
 
-            evaluation_error, evaluation_accuracy = fast_adapt_mlti(batch,
-                                                                    lam,
-                                                                    mix_flag,
+            evaluation_error, evaluation_accuracy = fast_adapt_maml(batch,
                                                                     learner,
                                                                     loss,
                                                                     config.adaptation_steps,
