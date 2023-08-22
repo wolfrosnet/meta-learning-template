@@ -11,8 +11,8 @@ import learn2learn as l2l
 from backbones.conv4 import Conv4
 from utils.seed import seed_everything
 from utils.load_data import get_tasksets
-from utils.adapt import fast_adapt_mlti, fast_adapt_maml
-from utils.mix import crosstask_mixup, innertask_mixup
+from utils.adapt import fast_adapt_maml
+from utils.mix import crosstask_mixup
 from configs.mlti_miniImageNet_S import Config
 
 

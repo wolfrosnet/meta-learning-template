@@ -7,7 +7,7 @@ class Config:
     algorithm='mlti'
     dataset_name='miniImageNet-S'
     ways=5
-    shots=5
+    shots=1
     meta_lr=0.001
     fast_lr=0.01 # For MiniImagenet, both models were trained using 5 gradient steps of size α = 0.01, 
     meta_batch_size=4 # We used a meta batch-size of 4 and 2 tasks for 1-shot and 5-shot training respectively.
