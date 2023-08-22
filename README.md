@@ -11,7 +11,7 @@
 
 ## 🏁 Checkpoints
 |Algorithm|Dataset|Ways|Shots|Accuracy(reported)|Accuracy(reproduced)|Link|
-| :-: | :-: | :-: | :-: | :-: | :-: |
+| :-: | :-: | :-: | :-: | :-: | :-: | :-: |
 |`MAML`|`miniImageNet-S`|5|1|38.27%|39.68%|[Google Drive](https://drive.google.com/file/d/1ab6S96nBj_OPlp2RA7SPKu15IFRK2yBr/view?usp=sharing)|
 |`MAML`|`miniImageNet-S`|5|5|52.14%|55.30%|[Google Drive](https://drive.google.com/file/d/1En99L015W1DTcOInBGCNUfwk7hBaPu1g/view?usp=drive_link)|
 |`MLTI`|`miniImageNet-S`|5|5|55.22%|56.73%|[Google Drive](https://drive.google.com/file/d/17My5pXqI_vwxE13lSa5ACYsEF9Lyou0y/view?usp=drive_link)|
