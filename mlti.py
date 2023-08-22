@@ -51,7 +51,6 @@ def main(config):
     opt = optim.Adam(maml.parameters(), config.meta_lr)
     loss = nn.CrossEntropyLoss(reduction='mean')
     best_valid_accuracy = 0.0
-    mix_flag = None
 
     with open("./etc/phase.txt", "r") as f:
         lines = f.readlines()
